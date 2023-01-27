@@ -1,32 +1,35 @@
-https://aseados.ucd.ie/datasets/SDN/
-
-import pandas as pd
+import numpy as np
 from sklearn.cluster import KMeans
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 
-# Load dataset
-data = pd.read_csv("InSDN_dataset.csv")
+# Load the InSDN dataset
+data = np.load("insdn_dataset.npy")
 
-# Preprocessing
-# ... (data cleaning, normalization, etc.)
+# Perform k-means clustering on the dataset
+kmeans = KMeans(n_clusters=2, random_state=0).fit(data)
+labels = kmeans.labels_
 
-# Clustering
-kmeans = KMeans(n_clusters=2)
-clusters = kmeans.fit_predict(data)
+# Split the data into training and testing sets
+train_data = data[:int(len(data) * 0.8), :]
+train_labels = labels[:int(len(labels) * 0.8)]
+test_data = data[int(len(data) * 0.8):, :]
+test_labels = labels[int(len(labels) * 0.8):]
 
-# Classification
-classifier = RandomForestClassifier()
-classifier.fit(data, clusters)
+# Train a SVM classifier on the training data
+clf = SVC(kernel='linear', C=1, random_state=0)
+clf.fit(train_data, train_labels)
 
-# Evaluation
-predictions = classifier.predict(data)
-accuracy = accuracy_score(clusters, predictions)
-f1 = f1_score(clusters, predictions)
-recall = recall_score(clusters, predictions)
-precision = precision_score(clusters, predictions)
+# Make predictions on the testing data
+predictions = clf.predict(test_data)
 
-print("Accuracy: ", accuracy)
+# Evaluate the system using various metrics
+acc = accuracy_score(test_labels, predictions)
+f1 = f1_score(test_labels, predictions)
+recall = recall_score(test_labels, predictions)
+precision = precision_score(test_labels, predictions)
+print("Accuracy: ", acc)
 print("F1-measure: ", f1)
 print("Recall: ", recall)
 print("Precision: ", precision)
+
